@@ -1,0 +1,11 @@
+network:
+  lan_interface: "br-lan"
+  lan_subnet: "10.0.0.0/24"
+  portal_ip: "10.0.0.1"
+  portal_port: 8080
+  admin_port: 8081
+billing:
+  rate_per_peso_minutes: 5
+coin:
+  serial_port: "/dev/ttyUSB0"
+  coin_map: {1: 1, 2: 5, 3: 10, 4: 20}

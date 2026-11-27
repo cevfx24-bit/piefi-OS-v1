@@ -1,0 +1,6 @@
+#!/bin/sh /etc/rc.common
+START=01
+boot() {
+    printf '\033[2J\033[H' > /dev/console 2>/dev/null
+    echo "booting pieFI OS ..." > /dev/console 2>/dev/null
+}

@@ -1,0 +1,9 @@
+table inet pisowifi {
+    set authorized_macs { type ether_addr; flags timeout; }
+    chain prerouting {
+        type nat hook prerouting priority dstnat; policy accept;
+        iifname "br-lan" ether saddr @authorized_macs return
+        iifname "br-lan" tcp dport 80 dnat to 10.0.0.1:8080
+        iifname "br-lan" tcp dport 443 drop
+    }
+}
