@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pieFI WiFi Portal</title><link rel="stylesheet" href="/static/style.css"></head>
+<body><div class="card">
+    <div class="logo">pieFI</div>
+    <div class="subtitle">Fast & Reliable Internet</div>
+    <div id="action-area">
+        <p style="color:#555; margin-bottom:20px;">Insert coin to start browsing.</p>
+        <button class="btn" id="coin-btn" onclick="insertCoin()">Insert Coin</button>
+    </div>
+    <div id="wait-area" style="display:none;">
+        <h3 style="color:#f39c12;">Waiting for coin...</h3>
+        <p style="color:#888; font-size:14px;">Please drop your coin into the slot now.</p>
+    </div>
+</div>
+<script>
+function insertCoin() {
+    document.getElementById('coin-btn').disabled = true;
+    document.getElementById('coin-btn').innerText = "Processing...";
+    fetch('/api/insert-coin', {method: 'POST'}).then(r => r.json()).then(data => {
+        if(data.ok) {
+            document.getElementById('action-area').style.display = 'none';
+            document.getElementById('wait-area').style.display = 'block';
+            setTimeout(pollStatus, 2000);
+        }
+    });
+}
+function pollStatus() {
+    fetch('/api/status').then(r => r.json()).then(data => {
+        if(data.authorized && data.remaining > 0) { window.location.reload(); }
+        else if(data.pending) { setTimeout(pollStatus, 2000); }
+        else { document.getElementById('coin-btn').disabled = false; document.getElementById('coin-btn').innerText = "Insert Coin"; }
+    });
+}
+</script></body></html>

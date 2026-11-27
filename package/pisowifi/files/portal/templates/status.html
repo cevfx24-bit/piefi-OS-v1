@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pieFI WiFi Status</title><link rel="stylesheet" href="/static/style.css"></head>
+<body><div class="card">
+    <div class="logo">pieFI</div>
+    <div class="status-box">
+        <div class="label">Time Remaining</div>
+        <div class="time" id="timer">--:--</div>
+    </div>
+    <button class="btn pause-btn {% if not c.paused %}resume{% endif %}" id="pause-btn" onclick="togglePause()">
+        {% if c.paused %}Resume Time{% else %}Pause Time{% endif %}
+    </button>
+    <button class="btn" style="background:#0a3d62; margin-top:10px;" onclick="insertCoin()">Add More Time</button>
+    <div id="wait-area" style="display:none; margin-top:15px; color:#f39c12; font-weight:bold;">Waiting for coin...</div>
+</div>
+<script>
+let remaining = {{ c.remaining_seconds }};
+let paused = {{ 'true' if c.paused else 'false' }};
+let isPending = false;
+
+function updateDisplay() {
+    let m = Math.floor(remaining / 60);
+    let s = remaining % 60;
+    document.getElementById('timer').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+}
+
+setInterval(() => {
+    if(!paused && remaining > 0 && !isPending) { remaining--; updateDisplay(); }
+    if(remaining <= 0 && !isPending) { window.location.reload(); }
+}, 1000);
+updateDisplay();
+
+function togglePause() {
+    fetch('/api/pause', {method: 'POST'}).then(r => r.json()).then(data => {
+        if(data.ok) { window.location.reload(); }
+    });
+}
+function insertCoin() {
+    document.getElementById('wait-area').style.display = 'block';
+    isPending = true;
+    fetch('/api/insert-coin', {method: 'POST'}).then(r => r.json()).then(data => {
+        if(data.ok) setTimeout(pollStatus, 2000);
+    });
+}
+function pollStatus() {
+    fetch('/api/status').then(r => r.json()).then(data => {
+        if(data.authorized && data.remaining > remaining) { window.location.reload(); }
+        else if(data.pending) { setTimeout(pollStatus, 2000); }
+        else { document.getElementById('wait-area').style.display = 'none'; isPending = false; }
+    });
+}
+</script></body></html>
